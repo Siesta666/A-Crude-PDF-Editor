@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Studio - PDF & 图片合并 / 可视化页面裁剪</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app" class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="app-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>PDF Studio</h1>
+                    <span class="sub">可视化交互 PDF 工具箱</span>
+                </div>
+            </div>
+
+            <!-- Tab 切换 (已合并为一个统一的“PDF & 图片合并”板块) -->
+            <nav class="nav-tabs">
+                <button class="tab-btn active" data-tab="merge-tab">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        <rect x="9" y="5" width="8" height="8" rx="1"></rect>
+                    </svg>
+                    PDF & 图片合并
+                </button>
+                <button class="tab-btn" data-tab="crop-tab">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 2v14a2 2 0 0 0 2 2h14"></path>
+                        <path d="M18 22V8a2 2 0 0 0-2-2H2"></path>
+                    </svg>
+                    PDF 可视化裁剪
+                </button>
+            </nav>
+        </header>
+
+        <!-- 主内容区 -->
+        <main class="app-main">
+            <!-- ================= TAB 1: PDF & 图片合并板块 (同板块，支持方块排列与预览) ================= -->
+            <section id="merge-tab" class="tab-content active">
+                <div class="merge-layout">
+                    <!-- 左侧设置与操作面板 -->
+                    <aside class="merge-settings">
+                        <h3>合并与排版设置</h3>
+
+                        <!-- 汇总统计 -->
+                        <div class="summary-box">
+                            <div class="summary-item">
+                                <span>已选择文件:</span>
+                                <strong id="merge-total-count">0</strong> 个
+                            </div>
+                            <div class="summary-sub-item">
+                                <span>📄 PDF 文件: <span id="merge-pdf-count">0</span> 个</span>
+                                <span>🖼️ 图片: <span id="merge-img-count">0</span> 张</span>
+                            </div>
+                            <div class="summary-item" style="margin-top: 4px; padding-top: 6px; border-top: 1px dashed var(--border-color);">
+                                <span>合并后总页数:</span>
+                                <strong id="merge-total-pages">0</strong> 页
+                            </div>
+                        </div>
+
+                        <!-- 图片页面排版规格 -->
+                        <div class="setting-group-box">
+                            <label class="section-label">图片排版规格 (针对所选图片)</label>
+                            
+                            <div class="setting-group">
+                                <label>纸张规格</label>
+                                <select id="select-page-size" class="select-box">
+                                    <option value="original">保持图片原图尺寸</option>
+                                    <option value="A4" selected>A4 纵向 (210 × 297 mm)</option>
+                                    <option value="A4_landscape">A4 横向 (297 × 210 mm)</option>
+                                    <option value="Letter">Letter 信纸 (216 × 279 mm)</option>
+                                </select>
+                            </div>
+
+                            <div class="setting-group">
+                                <label>图片页边距</label>
+                                <select id="select-margin" class="select-box">
+                                    <option value="0" selected>无边距 (0 mm)</option>
+                                    <option value="5">窄边距 (5 mm)</option>
+                                    <option value="10">标准边距 (10 mm)</option>
+                                    <option value="20">大边距 (20 mm)</option>
+                                </select>
+                            </div>
+
+                            <div class="setting-group">
+                                <label>清晰度 (DPI)</label>
+                                <select id="select-dpi" class="select-box">
+                                    <option value="150" selected>150 DPI (体积均衡，适合阅读)</option>
+                                    <option value="300">300 DPI (高清，适合打印)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="tip-card">
+                            <div class="tip-header">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg>
+                                <span>操作小贴士</span>
+                            </div>
+                            <p>按住方块<strong>直接拖动</strong>即可实时平滑换位（拖拽时按 ESC 可撤销），点击<strong>右下角预览</strong>可查看大图，支持 PDF 和图片混合合并。</p>
+                        </div>
+
+                        <div class="sidebar-action">
+                            <button class="btn btn-primary btn-block" id="btn-export-mixed-merged">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="12" y1="18" x2="12" y2="12"></line>
+                                    <polyline points="9 15 12 18 15 15"></polyline>
+                                </svg>
+                                一键合并导出新 PDF
+                            </button>
+                        </div>
+                    </aside>
+
+                    <!-- 右侧方块排列网格与操作栏 -->
+                    <div class="merge-main">
+                        <div class="merge-action-bar">
+                            <button class="btn btn-primary" id="btn-add-pdfs">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="12" y1="11" x2="12" y2="17"></line>
+                                    <line x1="9" y1="14" x2="15" y2="14"></line>
+                                </svg>
+                                添加 PDF 文件
+                            </button>
+                            <button class="btn btn-primary" id="btn-add-images">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                    <line x1="12" y1="8" x2="12" y2="14" style="stroke-width:1.5;"></line>
+                                </svg>
+                                添加图片
+                            </button>
+                            <button class="btn btn-ghost" id="btn-sort-name">按文件名升序</button>
+                            <button class="btn btn-ghost" id="btn-clear-all">清空列表</button>
+                        </div>
+
+                        <!-- 统一方块网格容器 -->
+                        <div class="merge-grid-list" id="merge-grid-list">
+                            <!-- 空状态 -->
+                            <div class="empty-list-hint" id="empty-merge-hint">
+                                <div class="hint-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <line x1="12" y1="11" x2="12" y2="17"></line>
+                                        <line x1="9" y1="14" x2="15" y2="14"></line>
+                                    </svg>
+                                </div>
+                                <h4>暂未添加任何 PDF 或图片</h4>
+                                <p>点击上方按钮添加，或<strong>直接从桌面拖入 PDF 和图片</strong></p>
+                                <span>采用方块网格排列，支持鼠标自由拖拽调整次序，并在右下角实时预览</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= TAB 2: PDF 可视化裁剪 ================= -->
+            <section id="crop-tab" class="tab-content">
+                <!-- 未打开文件状态 -->
+                <div id="crop-empty-state" class="empty-dropzone">
+                    <div class="drop-card" id="btn-open-pdf">
+                        <div class="drop-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+                                <path d="M12 12v9"></path>
+                                <path d="m8 16 4-4 4 4"></path>
+                            </svg>
+                        </div>
+                        <h3>点击或选择要裁剪的 PDF 文件</h3>
+                        <p>支持多页 PDF，提供画布鼠标拉框自由交互与比例锁定</p>
+                        <button class="btn btn-primary">选择 PDF 文件</button>
+                    </div>
+                </div>
+
+                <!-- 已打开 PDF 状态 (工作区) -->
+                <div id="crop-workspace" class="crop-workspace hidden">
+                    <!-- 左侧工具与属性面板 -->
+                    <aside class="crop-sidebar">
+                        <div class="sidebar-section">
+                            <div class="file-summary">
+                                <h4 id="pdf-doc-name">document.pdf</h4>
+                                <span class="badge" id="pdf-doc-pages">共 0 页</span>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" id="btn-reopen-pdf">更换文件</button>
+                        </div>
+
+                        <!-- 翻页控制 -->
+                        <div class="sidebar-section">
+                            <label class="section-label">页面导航</label>
+                            <div class="page-nav-bar">
+                                <button class="btn-icon" id="btn-prev-page" title="上一页">◀</button>
+                                <div class="page-indicator">
+                                    第 <input type="number" id="input-page-num" min="1" value="1"> / <span id="span-total-pages">1</span> 页
+                                </div>
+                                <button class="btn-icon" id="btn-next-page" title="下一页">▶</button>
+                            </div>
+                        </div>
+
+                        <!-- 裁剪比例预设 -->
+                        <div class="sidebar-section">
+                            <label class="section-label">裁剪比例锁定</label>
+                            <div class="ratio-presets">
+                                <button class="chip active" data-ratio="free">自由框选</button>
+                                <button class="chip" data-ratio="1:1">1 : 1</button>
+                                <button class="chip" data-ratio="4:3">4 : 3</button>
+                                <button class="chip" data-ratio="16:9">16 : 9</button>
+                                <button class="chip" data-ratio="a4-v">A4 纵向</button>
+                                <button class="chip" data-ratio="a4-h">A4 横向</button>
+                            </div>
+                        </div>
+
+                        <!-- 快速边距修剪 -->
+                        <div class="sidebar-section">
+                            <label class="section-label">快速边距预设</label>
+                            <div class="quick-trim-grid">
+                                <button class="btn btn-sm btn-ghost" id="btn-trim-full">全页复位</button>
+                                <button class="btn btn-sm btn-ghost" id="btn-trim-5">去 5% 边距</button>
+                                <button class="btn btn-sm btn-ghost" id="btn-trim-10">去 10% 边距</button>
+                            </div>
+                        </div>
+
+                        <!-- 裁剪尺寸读数 -->
+                        <div class="sidebar-section">
+                            <label class="section-label">选区尺寸信息</label>
+                            <div class="coord-card">
+                                <div class="coord-row">
+                                    <span>宽度:</span> <strong id="hud-width">0 pt</strong> <em id="hud-width-mm">(0 mm)</em>
+                                </div>
+                                <div class="coord-row">
+                                    <span>高度:</span> <strong id="hud-height">0 pt</strong> <em id="hud-height-mm">(0 mm)</em>
+                                </div>
+                                <div class="coord-row">
+                                    <span>原点 (X, Y):</span> <span id="hud-origin">(0, 0)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 导出范围设置 -->
+                        <div class="sidebar-section">
+                            <label class="section-label">应用范围</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="crop-range" value="current" checked>
+                                    <span>仅应用到当前页</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="crop-range" value="all">
+                                    <span>应用到所有页面</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="crop-range" value="range">
+                                    <span>指定页码范围</span>
+                                </label>
+                            </div>
+                            <input type="text" id="input-range-str" class="input-text hidden" placeholder="例如: 1, 3-5, 8">
+                        </div>
+
+                        <!-- 导出按钮 -->
+                        <div class="sidebar-action">
+                            <button class="btn btn-primary btn-block" id="btn-export-cropped">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                导出裁剪后的 PDF
+                            </button>
+                        </div>
+                    </aside>
+
+                    <!-- 中间交互画布区 -->
+                    <div class="canvas-viewport" id="canvas-viewport">
+                        <!-- 悬浮视图工具栏 -->
+                        <div class="floating-toolbar">
+                            <button class="btn-tool" id="btn-zoom-out" title="缩小">-</button>
+                            <span id="zoom-level-text">100%</span>
+                            <button class="btn-tool" id="btn-zoom-in" title="放大">+</button>
+                            <button class="btn-tool" id="btn-zoom-fit" title="适应窗口">适应</button>
+                            <button class="btn-tool" id="btn-zoom-100" title="100%">1:1</button>
+                        </div>
+
+                        <!-- 交互 Canvas 容器 -->
+                        <div class="canvas-stage" id="canvas-stage">
+                            <canvas id="crop-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- ================= 大图预览浮层模态框 (点击右下角预览时弹出) ================= -->
+        <div id="preview-modal" class="preview-modal hidden">
+            <div class="preview-dialog">
+                <div class="preview-header">
+                    <div class="preview-title-box">
+                        <span class="preview-badge" id="preview-file-type">图片</span>
+                        <h4 id="preview-file-name" title="">文件名.jpg</h4>
+                    </div>
+                    <div class="preview-meta-info" id="preview-meta-info">1920 × 1080 · 1.5 MB</div>
+                    <button class="preview-close-btn" id="btn-close-preview" title="关闭预览 (ESC 或点击空白处)">✕</button>
+                </div>
+                <div class="preview-body">
+                    <img id="preview-img" src="" alt="大图预览">
+                </div>
+            </div>
+        </div>
+
+        <!-- 全局外部文件拖拽悬浮遮罩 (从桌面拖入时高亮显示) -->
+        <div id="global-drop-overlay" class="global-drop-overlay hidden">
+            <div class="drop-modal-box">
+                <div class="drop-modal-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+                        <path d="M12 12v9"></path>
+                        <path d="m8 16 4-4 4 4"></path>
+                    </svg>
+                </div>
+                <h3>释放文件即可直接导入</h3>
+                <p>支持将桌面上的 PDF 文件或图片直接拖入当前板块</p>
+                <div class="drop-modal-tags">
+                    <span>📄 PDF 文件</span>
+                    <span>🖼️ JPG / PNG / WEBP / BMP</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 悬浮 Toast 消息提示 -->
+        <div id="toast" class="toast hidden"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
